@@ -1,4 +1,5 @@
 from django.db.models.query import QuerySet
+from django.contrib.gis.db.models.query import GeoQuerySet
 from django.conf import settings
 
 
@@ -15,9 +16,9 @@ class SharedQueries(object):
         return self.filter(sites__id=settings.SITE_ID)
 
 
-class GalleryQuerySet(SharedQueries, QuerySet):
+class GalleryQuerySet(SharedQueries, GeoQuerySet):
     pass
 
 
-class PhotoQuerySet(SharedQueries, QuerySet):
+class PhotoQuerySet(SharedQueries, GeoQuerySet):
     pass

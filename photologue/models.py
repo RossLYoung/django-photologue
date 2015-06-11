@@ -10,6 +10,7 @@ from django.utils.timezone import now
 from django.db import models
 from django.db.models.signals import post_save
 from django.conf import settings
+from django.contrib.gis.db.models.fields import PointField
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.core.urlresolvers import reverse
@@ -529,6 +530,8 @@ class Photo(ImageModel):
                                     help_text=_('Public photographs will be displayed in the default views.'))
     sites = models.ManyToManyField(Site, verbose_name=_(u'sites'),
                                    blank=True)
+
+    point = PointField(blank=True)
 
     objects = PhotoQuerySet.as_manager()
 
