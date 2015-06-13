@@ -531,7 +531,7 @@ class Photo(ImageModel):
     sites = models.ManyToManyField(Site, verbose_name=_(u'sites'),
                                    blank=True)
 
-    point = PointField(blank=True)
+    location = PointField(blank=True)
 
     objects = PhotoQuerySet.as_manager()
 
