@@ -15,6 +15,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='photo',
             name='location',
-            field=django.contrib.gis.db.models.fields.PointField(srid=4326, blank=True),
+            field=django.contrib.gis.db.models.fields.PointField(default=(-55.3385, 1.7245), srid=4326, blank=True),
+        ),
+        migrations.AlterField(
+            model_name='watermark',
+            name='image',
+            field=models.ImageField(upload_to=b'gallery/watermarks', verbose_name='image'),
         ),
     ]
