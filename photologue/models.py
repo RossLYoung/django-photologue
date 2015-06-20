@@ -532,7 +532,7 @@ class Photo(ImageModel):
     sites = models.ManyToManyField(Site, verbose_name=_(u'sites'),
                                    blank=True)
 
-    location = PointField(blank=True, default=Point(settings.PHOTO_DEFAULT_GEO))
+    location = PointField(blank=True, default=Point(settings.PHOTO_DEFAULT_GEO).wkt)
 
     objects = PhotoQuerySet.as_manager()
 
