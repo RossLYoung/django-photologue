@@ -195,6 +195,9 @@ class Gallery(models.Model):
                                    blank=True)
     sites = models.ManyToManyField(Site, verbose_name=_(u'sites'),
                                    blank=True)
+    show_on_map = models.BooleanField(_('show on map'),
+                                    default=True,
+                                    help_text=_('Should the gallery have a map view?'))
 
     objects = GalleryQuerySet.as_manager()
 
