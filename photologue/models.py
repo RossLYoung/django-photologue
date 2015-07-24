@@ -264,7 +264,7 @@ class ImageModel(models.Model):
     date_taken = models.DateTimeField(_('date taken'),
                                       null=True,
                                       blank=True,
-                                      editable=False)
+                                      editable=True)
     view_count = models.PositiveIntegerField(_('view count'),
                                              default=0,
                                              editable=False)
