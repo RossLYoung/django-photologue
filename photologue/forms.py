@@ -17,11 +17,14 @@ except ImportError:
 from django import forms
 from django.utils.translation import ugettext_lazy as _
 from django.contrib import messages
+from django.contrib.gis.geos import Point
 from django.contrib.sites.models import Site
 from django.conf import settings
 from django.utils.encoding import force_text
 from django.template.defaultfilters import slugify
 from django.core.files.base import ContentFile
+
+import pexif
 
 from .models import Gallery, Photo
 
@@ -35,7 +38,10 @@ class UploadZipForm(forms.Form):
                             max_length=50,
                             required=False,
                             help_text=_('All uploaded photos will be given a title made up of this title + a '
-                                        'sequential number.'))
+                                        'sequential number.<br>This field is required if creating a new '
+                                        'gallery, but is optional when adding to an existing gallery - if '
+                                        'not supplied, the photo titles will be creating from the existing '
+                                        'gallery name.'))
     gallery = forms.ModelChoiceField(Gallery.objects.all(),
                                      label=_('Gallery'),
                                      required=False,
@@ -46,7 +52,7 @@ class UploadZipForm(forms.Form):
                               help_text=_('Caption will be added to all photos.'))
     description = forms.CharField(label=_('Description'),
                                   required=False,
-                                  help_text=_('A description of this Gallery.'))
+                                  help_text=_('A description of this Gallery. Only required for new galleries.'))
     is_public = forms.BooleanField(label=_('Is public'),
                                    initial=True,
                                    required=False,
@@ -127,23 +133,19 @@ class UploadZipForm(forms.Form):
                 logger.debug('File "{0}" is empty.'.format(filename))
                 continue
 
-            title = ' '.join([gallery.title, str(count)])
-            slug = slugify(title)
+            photo_title_root = self.cleaned_data['title'] if self.cleaned_data['title'] else gallery.title
 
-            try:
-                Photo.objects.get(slug=slug)
-                logger.warning('Did not create photo "{0}" with slug "{1}" as a photo with that '
-                               'slug already exists.'.format(filename, slug))
-                if request:
-                    messages.warning(request,
-                                     _('Did not create photo "%(filename)s" with slug "{1}" as a photo with that '
-                                       'slug already exists.').format(filename, slug),
-                                     fail_silently=True)
-                continue
-            except Photo.DoesNotExist:
-                pass
+            # A photo might already exist with the same slug. So it's somewhat inefficient,
+            # but we loop until we find a slug that's available.
+            while True:
+                photo_title = ' '.join([photo_title_root, str(count)])
+                slug = slugify(photo_title)
+                if Photo.objects.filter(slug=slug).exists():
+                    count += 1
+                    continue
+                break
 
-            photo = Photo(title=title,
+            photo = Photo(title=photo_title,
                           slug=slug,
                           caption=self.cleaned_data['caption'],
                           is_public=self.cleaned_data['is_public'])
@@ -153,6 +155,17 @@ class UploadZipForm(forms.Form):
                 file = BytesIO(data)
                 opened = Image.open(file)
                 opened.verify()
+
+                try:
+                    pi = pexif.JpegFile.fromString(data)
+
+                    latlon = pi.get_geo()
+
+                    point_data = Point(latlon[::-1])
+                    photo.location = point_data
+                except:
+                    pass
+
             except Exception:
                 # Pillow (or PIL) doesn't recognize it as an image.
                 # If a "bad" file is found we just skip it.
@@ -171,7 +184,7 @@ class UploadZipForm(forms.Form):
             photo.save()
             photo.sites.add(current_site)
             gallery.photos.add(photo)
-            count = count + 1
+            count += 1
 
         zip.close()
 
