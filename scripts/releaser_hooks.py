@@ -1,16 +1,21 @@
 import subprocess
 import os
-import polib
+try:
+    import polib
+except ImportError:
+    print('Prerelease hooks will not work as you have not installed polib.')
+    raise
 import copy
 import codecs
 
 
-def prereleaser_middle(data):
+def prereleaser_before(data):
     """
     1. Run the unit tests one last time before we make a release.
     2. Update the CONTRIBUTORS.txt file.
 
-    Note: Install polib (https://pypi.python.org/pypi/polib).
+    Note: Install * polib (https://pypi.python.org/pypi/polib).
+                  * pep8.
 
     """
     print('Running unit tests.')
@@ -20,14 +25,19 @@ def prereleaser_middle(data):
     # See setup.cfg for configuration options.
     subprocess.check_output(["pep8"])
 
+    print('Checking that we have no outstanding DB migrations.')
+    output = subprocess.check_output(["python", "example_project/manage.py", "makemigrations", "--dry-run",
+                                      "photologue"])
+    if not output == b"No changes detected in app 'photologue'\n":
+        raise Exception('There are outstanding migrations for Photologue.')
+
     print('Updating CONTRIBUTORS.txt')
 
     # This command will get the author of every commit.
     output = subprocess.check_output(["git", "log", "--format='%aN'"])
 
     # Convert to a list.
-    contributors_list = [unicode(contributor.strip("'"), 'utf-8')
-                         for contributor in output.split("\n")]
+    contributors_list = [contributor.strip("'") for contributor in output.decode('utf-8').split('\n')]
 
     # Now add info from the translator files. This is incomplete, we can only list
     # the 'last contributor' to each translation.
@@ -68,3 +78,6 @@ def prereleaser_middle(data):
         f.write('Justin Driscoll\n')
         for i in sorted(contributors_dict, key=contributors_dict.get, reverse=True):
             f.write(i + '\n')
+
+    # And commit the new contributors file.
+    subprocess.check_output(["git", "commit", "-m", "Updated the list of contributors.", "CONTRIBUTORS.txt"])

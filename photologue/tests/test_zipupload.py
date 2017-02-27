@@ -2,6 +2,7 @@ import copy
 
 from django.test import TestCase
 from django.contrib.auth.models import User
+from django import VERSION
 
 from ..models import Gallery, Photo
 from .factories import GalleryFactory, PhotoFactory, SAMPLE_ZIP_PATH, SAMPLE_NOT_IMAGE_ZIP_PATH, \
@@ -64,8 +65,14 @@ class GalleryUploadTest(TestCase):
 
         test_data = copy.copy(self.sample_form_data)
         response = self.client.post('/admin/photologue/photo/upload_zip/', test_data)
-        self.assertEqual(response['Location'],
-                         'http://testserver/admin/photologue/photo/')
+        # The redirect Location has changed in Django 1.9 - it used to be an absolute URI, now it returns
+        # a relative one.
+        if VERSION[0] == 1 and VERSION[1] <= 8:
+            location = 'http://testserver/admin/photologue/photo/'
+        else:
+            location = '..'
+
+        self.assertEqual(response['Location'], location)
 
         self.assertQuerysetEqual(Gallery.objects.all(),
                                  ['<Gallery: This is a test title>'])
@@ -175,9 +182,9 @@ class GalleryUploadTest(TestCase):
 
         self.assertQuerysetEqual(Photo.objects.all(),
                                  ['<Photo: This is a test title 1>',
-                                  '<Photo: This is a test title 2>',
-                                  '<Photo: This is a test title 3>'],
-                                  ordered=False)
+                                 '<Photo: This is a test title 2>',
+                                 '<Photo: This is a test title 3>'],
+                                 ordered=False)
 
     def test_bad_zip(self):
         """Supplied file is not a zip file - tell user."""

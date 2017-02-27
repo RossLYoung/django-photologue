@@ -1,14 +1,82 @@
 Changelog
 =========
 
-3.3 (unreleased)
+3.7 (unreleased)
+----------------
+
+- Fixed the management commands to work in the latest versions of Django.
+- Fixed an issue with some photo sizes not being created (see #170).
+
+3.6 (2016-10-05)
+----------------
+
+- Now works with Django 1.10 (to be precise: Photologue worked, but the unit tests did not).
+- Updated urlpatterns in docs, tests and example project for Django 1.8+
+- Enhance Python 2.7 EXIF info.
+- Updated docs (contributed by lizwalsh).
+- Fixed command plcreatesize (contributed by Mikel Larreategi).
+- Fixed deprecated template settings (contributed by Justin Dugger).
+- Updated translations for German and Russian.
+
+3.5.1 (2016-01-13)
+------------------
+
+- Photologue 3.5 failed to install under Python 2.7. Looks like distutils does not like files
+  with non-ascii filenames (reported in #149).
+- Fix for issue #149 - bug with projects that extend ImageModel.
+
+
+3.5 (2016-01-09)
+----------------
+
+- Increased length of 'title' fields to 250 chars in order to store longer title.
+- Rotate image before resize, to comply with height/width constraints (see #145).
+- Added forgotten migration (#148).
+- Changing "Photo" image leaves extra files on server (#147).  
+- Normalize filenames to ASCII so they work across all filesystems (#109).
+- Updated Hungarian translation.
+
+3.4.1 (2015-12-23)
+------------------
+
+- Django 1.9 requires latest version of django-sortedm2m.
+
+
+3.4 (2015-12-23)
+----------------
+
+Upgrade notes:
+- The EXIF property of an Image is now a method instead.
+
+- Dropped support for Django 1.7.
+- Fixed a few minor issues with the unit tests.
+- Adding a watermark was crashing (fix suggested by hambro).
+- Added/updated translations: Danish, Slovak (contributed by Rasmus Klett, saboter).
+- Fixed Django 1.9 Deprecation warnings (contributed by jlemaes).
+- Processing of EXIF data was broken (and very broken in Python 3) - updated library and bug fixes.
+
+
+3.3.2 (2015-07-20)
+------------------
+
+- Release Photologue as a universal wheel.
+
+
+3.3.1 (2015-07-20)
+------------------
+
+- Upload of 3.3 to Pypi had failed.
+
+3.3 (2015-07-20)
 ----------------
 
 - In the initial data setup, the 'thumbnail' photosizes should not increment the
   view count (issue #133).
 - Fix typo in admin text (issue reported by Transifex user ciastko).
-- Updated Hungarian translation.
-
+- Updated translations: Hungarian, Czech, Dutch.
+- Zip upload used gallery title instead of "Title" field for photos (#139).
+- Zip upload: an uploaded photo is not a duplicate of an existing photo simply because they share the same slug.
+- Updated django-sortedm2m version - this should help admin performance for galleries with lots of photos.
 
 3.2 (2015-05-11)
 ----------------
